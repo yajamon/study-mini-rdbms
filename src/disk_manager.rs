@@ -10,7 +10,7 @@ pub struct DiskManager {
 }
 
 const PAGE_SIZE: usize = 4096;
-type PageId = u64;
+pub struct PageId(pub u64);
 
 impl DiskManager {
     /// コンストラクタ
@@ -35,7 +35,9 @@ impl DiskManager {
 
     /// 新しいページIDを採番する
     pub fn allocate_page(&mut self) -> PageId {
-        unimplemented!();
+        let page_id = self.next_page_id;
+        self.next_page_id += 1;
+        PageId(page_id)
     }
 
     /// ページのデータを読み出す
