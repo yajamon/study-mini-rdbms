@@ -1,6 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::io;
-use std::io::{Seek, SeekFrom, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
 pub struct DiskManager {
@@ -48,7 +48,9 @@ impl DiskManager {
 
     /// ページのデータを読み出す
     pub fn read_page_data(&mut self, page_id: PageId, data: &mut [u8]) -> io::Result<()> {
-        unimplemented!();
+        let offset = PAGE_SIZE as u64 * page_id.to_u64();
+        self.heap_file.seek(SeekFrom::Start(offset))?;
+        self.heap_file.read_exact(data)
     }
 
     /// データをページに書き出す
