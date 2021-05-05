@@ -9,12 +9,18 @@ pub struct DiskManager {
     next_page_id: u64,
 }
 
+const PAGE_SIZE: usize = 4096;
 type PageId = u64;
 
 impl DiskManager {
     /// コンストラクタ
-    pub fn new(data_file: File) -> io::Result<Self> {
-        unimplemented!();
+    pub fn new(heap_file: File) -> io::Result<Self> {
+        let heap_file_size = heap_file.metadata()?.len();
+        let next_page_id = heap_file_size / PAGE_SIZE as u64;
+        Ok(Self {
+            heap_file,
+            next_page_id,
+        })
     }
 
     /// ファイルパスを指定して開く
