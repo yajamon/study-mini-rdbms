@@ -3,19 +3,19 @@ use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
-pub struct DiskManager {
-    // ヒープファイルのファイルディスクリプタ
-    heap_file: File,
-    // 採番するページIDを決めるカウンタ
-    next_page_id: u64,
-}
-
 const PAGE_SIZE: usize = 4096;
 pub struct PageId(pub u64);
 impl PageId {
     pub fn to_u64(&self) -> u64 {
         self.0
     }
+}
+
+pub struct DiskManager {
+    // ヒープファイルのファイルディスクリプタ
+    heap_file: File,
+    // 採番するページIDを決めるカウンタ
+    next_page_id: u64,
 }
 
 impl DiskManager {
