@@ -1,3 +1,4 @@
+mod buffer;
 mod disk_manager;
 
 #[cfg(test)]
