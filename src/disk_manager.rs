@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io;
 use std::path::Path;
 
@@ -18,8 +18,13 @@ impl DiskManager {
     }
 
     /// ファイルパスを指定して開く
-    pub fn open(data_file_path: impl AsRef<Path>) -> io::Result<Self> {
-        unimplemented!();
+    pub fn open(heap_file_path: impl AsRef<Path>) -> io::Result<Self> {
+        let heap_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(heap_file_path)?;
+        Self::new(heap_file)
     }
 
     /// 新しいページIDを採番する
