@@ -6,7 +6,7 @@ use std::rc::Rc;
 use crate::disk_manager::*;
 
 #[derive(Clone, Copy)]
-pub struct BufferId(u64);
+pub struct BufferId(usize);
 
 pub type Page = [u8; PAGE_SIZE];
 
@@ -26,8 +26,8 @@ pub struct BufferPool {
     next_victim_id: BufferId,
 }
 impl BufferPool {
-    fn size(&self) -> u64 {
-        todo!()
+    fn size(&self) -> usize {
+        self.buffers.len()
     }
     fn evict(&mut self) -> Option<BufferId> {
         let pool_size = self.size();
@@ -64,13 +64,13 @@ impl Index<BufferId> for BufferPool {
     type Output = Frame;
 
     fn index(&self, index: BufferId) -> &Self::Output {
-        todo!()
+        &self.buffers[index.0]
     }
 }
 
 impl IndexMut<BufferId> for BufferPool {
     fn index_mut(&mut self, index: BufferId) -> &mut Self::Output {
-        todo!()
+        &mut self.buffers[index.0]
     }
 }
 
