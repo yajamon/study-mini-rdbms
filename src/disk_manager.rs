@@ -3,7 +3,9 @@ use std::io;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
-const PAGE_SIZE: usize = 4096;
+pub const PAGE_SIZE: usize = 4096;
+
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct PageId(pub u64);
 impl PageId {
     pub fn to_u64(&self) -> u64 {
