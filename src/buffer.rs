@@ -5,6 +5,16 @@ use std::rc::Rc;
 
 use crate::disk_manager::*;
 
+pub enum Error {
+    NoFreeBuffer,
+    IoError(std::io::Error),
+}
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
+        Error::IoError(e)
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct BufferId(usize);
 
@@ -29,6 +39,7 @@ impl BufferPool {
     fn size(&self) -> usize {
         self.buffers.len()
     }
+    /// 使っていい BufferId を返す
     fn evict(&mut self) -> Option<BufferId> {
         let pool_size = self.size();
         let mut consecutive_pinned = 0;
@@ -78,4 +89,36 @@ pub struct BufferPoolManager {
     disk: DiskManager,
     pool: BufferPool,
     page_table: HashMap<PageId, BufferId>,
+}
+
+impl BufferPoolManager {
+    pub fn fetch_page(&mut self, page_id: PageId) -> Result<Rc<Buffer>, Error> {
+        if let Some(&buffer_id) = self.page_table.get(&page_id) {
+            let frame = &mut self.pool[buffer_id];
+            frame.usage_count += 1;
+            return Ok(frame.buffer.clone());
+        }
+        // 使っていいバッファを決定する
+        let buffer_id = self.pool.evict().ok_or(Error::NoFreeBuffer)?;
+        let frame = &mut self.pool[buffer_id];
+        let evict_page_id = frame.buffer.page_id;
+        {
+            let buffer = Rc::get_mut(&mut frame.buffer).unwrap();
+            // 変化しているならば、ディスクの内容が古いので書き込む
+            if buffer.is_dirty.get() {
+                self.disk
+                    .write_page_data(evict_page_id, buffer.page.get_mut())?;
+            }
+            buffer.page_id = page_id;
+            buffer.is_dirty.set(false);
+            // ページを読み出す
+            self.disk.read_page_data(page_id, buffer.page.get_mut())?;
+            frame.usage_count = 1;
+        }
+        // ページテーブルを更新する
+        let page = Rc::clone(&frame.buffer);
+        self.page_table.remove(&evict_page_id);
+        self.page_table.insert(page_id, buffer_id);
+        Ok(page)
+    }
 }
